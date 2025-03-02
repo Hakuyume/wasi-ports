@@ -13,10 +13,11 @@ def main() -> int:
     store = wasmtime.Store(engine)
     wasi = wasmtime.WasiConfig()
     wasi.argv = sys.argv
+    wasi.inherit_env()
     wasi.inherit_stderr()
     wasi.inherit_stdin()
     wasi.inherit_stdout()
-    wasi.preopen_dir(os.getcwd(), os.getcwd())
+    wasi.preopen_dir("/", "/")
     store.set_wasi(wasi)
 
     module = wasmtime.Module.from_file(
