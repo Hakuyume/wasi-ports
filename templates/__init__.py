@@ -21,7 +21,7 @@ def main() -> int:
 
     module = wasmtime.Module.from_file(
         engine,
-        os.path.join(os.path.dirname(__file__), "goreturns.wasm"),
+        os.path.join(os.path.dirname(__file__), "main.wasm"),
     )
     instance = linker.instantiate(store, module)
     start = instance.exports(store)["_start"]

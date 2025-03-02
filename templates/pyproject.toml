@@ -1,0 +1,12 @@
+[project]
+name = "${NAME}-wasi"
+version = "${VERSION}"
+requires-python = ">=3.12"
+dependencies = ["wasmtime>=30.0.0"]
+
+[project.scripts]
+${NAME} = "${NAME}_wasi:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
