@@ -1,0 +1,17 @@
+[project]
+name = "goreturns-wasi"
+requires-python = ">=3.12"
+dependencies = [
+    "wasmtime>=30.0.0",
+]
+dynamic = ["version"]
+
+[project.scripts]
+goreturns = "goreturns_wasi:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/goreturns_wasi/_version.py"
