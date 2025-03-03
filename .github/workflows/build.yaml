@@ -1,0 +1,18 @@
+name: build
+
+on:
+  push:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: |
+          sh generate.sh
+          rm dist/.gitignore
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
