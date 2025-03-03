@@ -46,7 +46,7 @@ RUN GOOS=wasip1 GOARCH=wasm go install mvdan.cc/sh/v3/cmd/shfmt@v${SHFMT_VERSION
 RUN install -Dm644 bin/wasip1_wasm/shfmt /dist/shfmt-${SHFMT_VERSION}.wasm
 
 FROM scratch
-COPY --from=goreturns dist/ ./
-COPY --from=jq dist/ ./
-COPY --from=shellcheck dist/ ./
-COPY --from=shfmt dist/ ./
+COPY --from=goreturns dist/ dist/
+COPY --from=jq dist/ dist/
+COPY --from=shellcheck dist/ dist/
+COPY --from=shfmt dist/ dist/
