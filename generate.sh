@@ -19,7 +19,7 @@ docker buildx build \
 
 CID=$(docker create $(cat ${IIDFILE}) true)
 mkdir -p dist
-docker cp ${CID}:dist/ dist/
+docker cp ${CID}:dist/ ./
 
 build_python() {
     NAME=$1
