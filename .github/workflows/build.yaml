@@ -28,5 +28,5 @@ jobs:
           name: dist
       - uses: softprops/action-gh-release@v2
         with:
-          files: dist/
+          files: dist/*
           prerelease: true
