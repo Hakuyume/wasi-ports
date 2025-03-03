@@ -21,18 +21,20 @@ CID=$(docker create $(cat ${IIDFILE}) true)
 mkdir -p dist
 docker cp ${CID}:./ dist/
 
-pyproject() {
+build_python() {
     NAME=$1
     VERSION=$2
     WASM=$3
 
     NAME=${NAME} VERSION=${VERSION} envsubst < templates/pyproject.toml |
-        install -Dm644 /dev/stdin dist/${NAME}-python/pyproject.toml
-    install -Dm644 templates/__init__.py dist/${NAME}-python/src/${NAME}_wasi/__init__.py
-    install -Dm644 dist/${WASM} dist/${NAME}-python/src/${NAME}_wasi/main.wasm
+        install -Dm644 /dev/stdin build/${NAME}-python/pyproject.toml
+    install -Dm644 templates/__init__.py build/${NAME}-python/src/${NAME}_wasi/__init__.py
+    install -Dm644 dist/${WASM} build/${NAME}-python/src/${NAME}_wasi/main.wasm
+
+    (cd build/${NAME}-python && uv build --out-dir=../../dist)
 }
 
-pyproject goreturns 0.0.0+${GORETURNS_REV} goreturns-${GORETURNS_REV}.wasm
-pyproject jq ${JQ_VERSION} jq-${JQ_VERSION}.wasm
-pyproject shellcheck ${SHELLCHECK_VERSION} shellcheck-${SHELLCHECK_VERSION}.wasm
-pyproject shfmt ${SHFMT_VERSION} shfmt-${SHFMT_VERSION}.wasm
+build_python goreturns 0.0.0+${GORETURNS_REV} goreturns-${GORETURNS_REV}.wasm
+build_python jq ${JQ_VERSION} jq-${JQ_VERSION}.wasm
+build_python shellcheck ${SHELLCHECK_VERSION} shellcheck-${SHELLCHECK_VERSION}.wasm
+build_python shfmt ${SHFMT_VERSION} shfmt-${SHFMT_VERSION}.wasm
