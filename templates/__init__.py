@@ -5,7 +5,9 @@ import wasmtime
 
 
 def main() -> int:
-    engine = wasmtime.Engine()
+    config = wasmtime.Config()
+    config.cache = True
+    engine = wasmtime.Engine(config)
 
     linker = wasmtime.Linker(engine)
     linker.define_wasi()
