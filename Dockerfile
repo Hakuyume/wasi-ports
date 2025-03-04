@@ -1,3 +1,8 @@
+ARG GORETURNS_REV=16fc3d8
+ARG JQ_VERSION=1.7.1
+ARG SHELLCHECK_VERSION=0.10.0
+ARG SHFMT_VERSION=3.10.0
+
 FROM debian AS ghc-wasm-meta
 RUN apt-get update \
     && apt-get install --yes \
@@ -10,11 +15,11 @@ RUN apt-get update \
     zstd
 RUN curl https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta/-/raw/master/bootstrap.sh | FLAVOUR=9.12 sh
 
-FROM golang:1.24.0 AS go
+FROM golang:1.24.0 AS golang
 
 FROM ghcr.io/webassembly/wasi-sdk:sha-d94a133 AS wasi-sdk
 
-FROM go AS goreturns
+FROM golang AS goreturns
 ARG GORETURNS_REV
 RUN GOOS=wasip1 GOARCH=wasm go install github.com/sqs/goreturns@${GORETURNS_REV}
 RUN install -Dm644 bin/wasip1_wasm/goreturns /dist/goreturns-${GORETURNS_REV}.wasm
@@ -37,16 +42,47 @@ RUN git clone --branch=v${SHELLCHECK_VERSION} --depth=1 --recurse-submodules htt
 RUN cd shellcheck \
     && ./striptests \
     && . ~/.ghc-wasm/env \
+    && wasm32-wasi-cabal configure -O2 \
     && wasm32-wasi-cabal build
 RUN install -Dm644 $(find shellcheck/dist-newstyle -name shellcheck.wasm) /dist/shellcheck-${SHELLCHECK_VERSION}.wasm
 
-FROM go AS shfmt
+FROM golang AS shfmt
 ARG SHFMT_VERSION
 RUN GOOS=wasip1 GOARCH=wasm go install mvdan.cc/sh/v3/cmd/shfmt@v${SHFMT_VERSION}
 RUN install -Dm644 bin/wasip1_wasm/shfmt /dist/shfmt-${SHFMT_VERSION}.wasm
 
+FROM ghcr.io/astral-sh/uv:0.6.4-bookworm-slim AS package-python
+RUN apt-get update && apt-get install --yes gettext
+COPY package-python/ package-python/
+
+FROM package-python AS goreturns-python
+COPY --from=goreturns dist/ src/
+ARG GORETURNS_REV
+RUN sh package-python/build.sh goreturns 0.0.0+${GORETURNS_REV} src/*.wasm /dist/
+
+FROM package-python AS jq-python
+COPY --from=jq dist/ src/
+ARG JQ_VERSION
+RUN sh package-python/build.sh jq ${JQ_VERSION} src/*.wasm /dist/
+
+FROM package-python AS shellcheck-python
+COPY --from=shellcheck dist/ src/
+ARG SHELLCHECK_VERSION
+RUN sh package-python/build.sh shellcheck ${SHELLCHECK_VERSION} src/*.wasm /dist/
+
+FROM package-python AS shfmt-python
+COPY --from=shfmt dist/ src/
+ARG SHFMT_VERSION
+RUN sh package-python/build.sh shfmt ${SHFMT_VERSION} src/*.wasm /dist/
+
 FROM scratch
+
 COPY --from=goreturns dist/ dist/
 COPY --from=jq dist/ dist/
 COPY --from=shellcheck dist/ dist/
 COPY --from=shfmt dist/ dist/
+
+COPY --from=goreturns-python dist/ dist/
+COPY --from=jq-python dist/ dist/
+COPY --from=shellcheck-python dist/ dist/
+COPY --from=shfmt-python dist/ dist/
