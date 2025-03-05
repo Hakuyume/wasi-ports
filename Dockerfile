@@ -77,12 +77,12 @@ RUN sh package-python/build.sh shfmt ${SHFMT_VERSION} src/*.wasm /dist/
 
 FROM scratch
 
-COPY --from=goreturns dist/ dist/
-COPY --from=jq dist/ dist/
-COPY --from=shellcheck dist/ dist/
-COPY --from=shfmt dist/ dist/
+COPY --from=goreturns dist/ ./
+COPY --from=jq dist/ ./
+COPY --from=shellcheck dist/ ./
+COPY --from=shfmt dist/ ./
 
-COPY --from=goreturns-python dist/ dist/
-COPY --from=jq-python dist/ dist/
-COPY --from=shellcheck-python dist/ dist/
-COPY --from=shfmt-python dist/ dist/
+COPY --from=goreturns-python dist/ ./
+COPY --from=jq-python dist/ ./
+COPY --from=shellcheck-python dist/ ./
+COPY --from=shfmt-python dist/ ./
