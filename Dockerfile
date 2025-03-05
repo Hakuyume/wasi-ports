@@ -8,12 +8,16 @@ RUN apt-get update \
     && apt-get install --yes \
     ca-certificates \
     curl \
+    git \
     jq \
     make \
     unzip \
     xz-utils \
     zstd
-RUN curl https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta/-/raw/master/bootstrap.sh | FLAVOUR=9.12 sh
+RUN git clone https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta.git \
+    && cd ghc-wasm-meta \
+    && git checkout 92ff0eb8541eb0a6097922e3532c3fd44d2f7db4 \
+    && FLAVOUR=9.12 exec ./setup.sh
 
 FROM golang:1.24.0 AS golang
 
