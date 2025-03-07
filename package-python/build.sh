@@ -14,5 +14,5 @@ NAME=${NAME} VERSION=${VERSION} envsubst < ${ASSET_DIR}/pyproject.toml |
 install -Dm644 ${ASSET_DIR}/__init__.py ${BUILD_DIR}/src/${NAME}_wasi/__init__.py
 install -Dm644 ${WASM} ${BUILD_DIR}/src/${NAME}_wasi/main.wasm
 
-uv --directory=${BUILD_DIR} build --out-dir=${OUT_DIR}
+uv --directory=${BUILD_DIR} build --out-dir=${OUT_DIR} --wheel
 rm ${OUT_DIR}/.gitignore
