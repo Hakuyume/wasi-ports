@@ -2,6 +2,7 @@ ARG GORETURNS_REV=16fc3d8
 ARG JQ_VERSION=1.7.1
 ARG SHELLCHECK_VERSION=0.10.0
 ARG SHFMT_VERSION=3.10.0
+ARG YAMLFMT_VERSION=0.16.0
 
 FROM debian AS ghc-wasm-meta
 RUN apt-get update \
@@ -55,6 +56,11 @@ ARG SHFMT_VERSION
 RUN GOOS=wasip1 GOARCH=wasm go install mvdan.cc/sh/v3/cmd/shfmt@v${SHFMT_VERSION}
 RUN install -Dm644 bin/wasip1_wasm/shfmt /dist/shfmt-${SHFMT_VERSION}.wasm
 
+FROM golang AS yamlfmt
+ARG YAMLFMT_VERSION
+RUN GOOS=wasip1 GOARCH=wasm go install github.com/google/yamlfmt/cmd/yamlfmt@v${YAMLFMT_VERSION}
+RUN install -Dm644 bin/wasip1_wasm/yamlfmt /dist/yamlfmt-${YAMLFMT_VERSION}.wasm
+
 FROM ghcr.io/astral-sh/uv:0.6.4-bookworm-slim AS package-python
 RUN apt-get update && apt-get install --yes gettext
 COPY package-python/ package-python/
@@ -79,14 +85,21 @@ COPY --from=shfmt dist/ src/
 ARG SHFMT_VERSION
 RUN sh package-python/build.sh shfmt ${SHFMT_VERSION} src/*.wasm /dist/
 
+FROM package-python AS yamlfmt-python
+COPY --from=yamlfmt dist/ src/
+ARG YAMLFMT_VERSION
+RUN sh package-python/build.sh yamlfmt ${YAMLFMT_VERSION} src/*.wasm /dist/
+
 FROM scratch
 
 COPY --from=goreturns dist/ ./
 COPY --from=jq dist/ ./
 COPY --from=shellcheck dist/ ./
 COPY --from=shfmt dist/ ./
+COPY --from=yamlfmt dist/ ./
 
 COPY --from=goreturns-python dist/ ./
 COPY --from=jq-python dist/ ./
 COPY --from=shellcheck-python dist/ ./
 COPY --from=shfmt-python dist/ ./
+COPY --from=yamlfmt-python dist/ ./
