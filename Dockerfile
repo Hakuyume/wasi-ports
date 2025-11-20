@@ -1,10 +1,10 @@
 ARG GORETURNS_REV=16fc3d8
-ARG JQ_VERSION=1.7.1
-ARG SHELLCHECK_VERSION=0.10.0
-ARG SHFMT_VERSION=3.10.0
-ARG YAMLFMT_VERSION=0.16.0
+ARG JQ_VERSION=1.8.1
+ARG SHELLCHECK_VERSION=0.11.0
+ARG SHFMT_VERSION=3.12.0
+ARG YAMLFMT_VERSION=0.20.0
 
-FROM debian AS ghc-wasm-meta
+FROM debian:trixie AS ghc-wasm-meta
 RUN apt-get update \
     && apt-get install --yes \
     ca-certificates \
@@ -17,12 +17,12 @@ RUN apt-get update \
     zstd
 RUN git clone https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta.git \
     && cd ghc-wasm-meta \
-    && git checkout 92ff0eb8541eb0a6097922e3532c3fd44d2f7db4 \
+    && git checkout d2afa8b4fdd8ee8ef8d136833d928d310ef815bf \
     && FLAVOUR=9.12 exec ./setup.sh
 
-FROM golang:1.24.0 AS golang
+FROM golang:1.25.4 AS golang
 
-FROM ghcr.io/webassembly/wasi-sdk:sha-d94a133 AS wasi-sdk
+FROM ghcr.io/webassembly/wasi-sdk:wasi-sdk-29 AS wasi-sdk
 
 FROM golang AS goreturns
 ARG GORETURNS_REV
@@ -61,7 +61,7 @@ ARG YAMLFMT_VERSION
 RUN GOOS=wasip1 GOARCH=wasm go install github.com/google/yamlfmt/cmd/yamlfmt@v${YAMLFMT_VERSION}
 RUN install -Dm644 bin/wasip1_wasm/yamlfmt /dist/yamlfmt-${YAMLFMT_VERSION}.wasm
 
-FROM ghcr.io/astral-sh/uv:0.6.4-bookworm-slim AS package-python
+FROM ghcr.io/astral-sh/uv:0.9.10-python3.11-trixie-slim AS package-python
 RUN apt-get update && apt-get install --yes gettext
 COPY package-python package-python
 
